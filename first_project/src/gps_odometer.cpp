@@ -113,6 +113,18 @@ int main(int argc, char** argv) {
 
     ros::Time::waitForValid();
 
+    ros::NodeHandle private_nh("~");
+    double p_lat_r, p_lon_r, p_alt_r;
+    if (private_nh.getParam("lat_r", p_lat_r) && private_nh.getParam("lon_r", p_lon_r) && private_nh.getParam("alt_r", p_alt_r)) {
+        ROS_INFO("Set GPS references from params: lat_r=%f lon_r=%f alt_r=%f", p_lat_r, p_lon_r, p_alt_r);
+        lat_ref = p_lat_r;
+        lon_ref = p_lon_r;
+        alt_ref = p_alt_r;
+        reference_set = true;
+    } else {
+        ROS_INFO("GPS reference not found in params, going to use first message");
+    }
+
     gps_odom_pub = nh.advertise<nav_msgs::Odometry>("/gps_odom", 50);
     tf_broadcaster = new tf::TransformBroadcaster();
 
