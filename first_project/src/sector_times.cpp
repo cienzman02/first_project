@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/NavSatFix.h>
+#include "first_project/sector_times.h"
 
 #include <cmath>
 #include <vector>
@@ -33,12 +34,16 @@ std::vector<std::pair<Coordinate, Coordinate>> sectors = {
     { {45.616058, 9.280528}, {45.616018, 9.281218} },
 };
 
-float latest_speed = 0.0;                     // velocità in km/h
 double latest_lat = 0.0, latest_lon = 0.0;    // coordinate GPS
 bool received_gps = false;                    // per sapere se abbiamo già ricevuto almeno un messaggio
 int sector_number = 0;
 Coordinate latest_coordinate;
 
+ros::Publisher sec_times_pub;
+float mean_speed = 0.0;
+size_t n_speed_samples = 0;
+double sec_start_time;
+bool sec_time_initialized = false;
 
 int orientation(Coordinate p, Coordinate q, Coordinate r) {
     double val = (q.latitude - p.latitude) * (r.longitude - q.longitude) - 
@@ -78,12 +83,17 @@ bool doSegmentsIntersect(Coordinate p1, Coordinate p2, Coordinate p3, Coordinate
 
 // Callback for /speedsteer
 void speedCallback(const geometry_msgs::PointStamped::ConstPtr& msg) {
-    latest_speed = msg->point.y;  // estraiamo la velocità dal campo y (x è lo sterzo)
-    // ROS_INFO("Velocity riceived: %.2f km/h", latest_speed);
+    // ROS_INFO("Speed: %.6f", msg->point.y);
+    mean_speed = (mean_speed * (float)n_speed_samples + msg->point.y) / ((float)n_speed_samples + 1.);
+    n_speed_samples++;
 }
 
 // Callback for /swiftnav/front/gps_pose
 void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
+    if (!sec_time_initialized) {
+        sec_start_time = msg->header.stamp.toSec();
+        sec_time_initialized = true;
+    }
 
     Coordinate new_coordinate;
     new_coordinate.latitude = msg->latitude;
@@ -92,18 +102,25 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
     Coordinate A = sectors[sector_number].first;
     Coordinate B = sectors[sector_number].second;
 
-
-
     if (doSegmentsIntersect(A, B, latest_coordinate, new_coordinate) && received_gps) {
         ROS_INFO("\n\n>>> Finished sector %d, going to sector %ld, transition at lat=%.8f, lon=%.8f\n", 
             sector_number + 1, (sector_number + 1) % sectors.size() + 1, msg->latitude, msg->longitude);
         sector_number = (sector_number + 1) % sectors.size();
+        mean_speed = 0.0;
+        n_speed_samples = 0;
+        sec_start_time = msg->header.stamp.toSec();
     }
 
     latest_coordinate = new_coordinate;
     received_gps = true;
     //ROS_INFO("GPS received");
     //ROS_INFO("Current sector: %d", sector_number);
+
+    first_project::sector_times sec_msg;
+    sec_msg.current_sector = sector_number + 1;
+    sec_msg.current_sector_time = msg->header.stamp.toSec() - sec_start_time;
+    sec_msg.current_sector_mean_speed = mean_speed;
+    sec_times_pub.publish(sec_msg);
 }
 
 
@@ -113,6 +130,7 @@ int main(int argc, char **argv) {
 
     ros::Subscriber sub_speed = nh.subscribe("/speedsteer", 10, speedCallback);
     ros::Subscriber sub_gps = nh.subscribe("/swiftnav/front/gps_pose", 10, gpsCallback);
+    sec_times_pub = nh.advertise<first_project::sector_times>("/sector_times", 50);
 
     ROS_INFO("Odometer node started and subscribed to /speedsteer and /swiftnav/front/gps_pose");
 
