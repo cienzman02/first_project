@@ -23,14 +23,14 @@ struct Coordinate {
 
 
 std::vector<std::pair<Coordinate, Coordinate>> sectors = {
-    // Settore 3-1
-    { {45.616058, 9.280528}, {45.616018, 9.281218} },
-
     // Settore 1-2
     { {45.630247, 9.289481}, {45.629969, 9.289499} },
 
     // Settore 2-3
-    { {45.623658, 9.287174}, {45.623476, 9.287370} }
+    { {45.623658, 9.287174}, {45.623476, 9.287370} },
+    
+    // Settore 3-1
+    { {45.616058, 9.280528}, {45.616018, 9.281218} },
 };
 
 float latest_speed = 0.0;                     // velocità in km/h
@@ -79,7 +79,7 @@ bool doSegmentsIntersect(Coordinate p1, Coordinate p2, Coordinate p3, Coordinate
 // Callback for /speedsteer
 void speedCallback(const geometry_msgs::PointStamped::ConstPtr& msg) {
     latest_speed = msg->point.y;  // estraiamo la velocità dal campo y (x è lo sterzo)
-    ROS_INFO("Velocity riceived: %.2f km/h", latest_speed);
+    // ROS_INFO("Velocity riceived: %.2f km/h", latest_speed);
 }
 
 // Callback for /swiftnav/front/gps_pose
@@ -95,7 +95,8 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
 
 
     if (doSegmentsIntersect(A, B, latest_coordinate, new_coordinate) && received_gps) {
-        ROS_INFO("\n\n>>> Intersection detected with sector %d!\n", sector_number + 1);
+        ROS_INFO("\n\n>>> Finished sector %d, going to sector %ld, transition at lat=%.8f, lon=%.8f\n", 
+            sector_number + 1, (sector_number + 1) % sectors.size() + 1, msg->latitude, msg->longitude);
         sector_number = (sector_number + 1) % sectors.size();
     }
 
@@ -114,7 +115,6 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_gps = nh.subscribe("/swiftnav/front/gps_pose", 10, gpsCallback);
 
     ROS_INFO("Odometer node started and subscribed to /speedsteer and /swiftnav/front/gps_pose");
-
 
     ros::spin();
     return 0;
