@@ -1,0 +1,4 @@
+<launch>
+  <!-- Launch sector_times node -->
+  <node pkg="first_project" type="sector_times" name="sector_times" output="screen" />
+</launch>

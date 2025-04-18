@@ -103,7 +103,7 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
     Coordinate B = sectors[sector_number].second;
 
     if (doSegmentsIntersect(A, B, latest_coordinate, new_coordinate) && received_gps) {
-        ROS_INFO("\n\n>>> Finished sector %d, going to sector %ld, transition at lat=%.8f, lon=%.8f\n", 
+        ROS_INFO("sector_times: Finished sector %d, going to sector %ld, transition at lat=%.8f, lon=%.8f", 
             sector_number + 1, (sector_number + 1) % sectors.size() + 1, msg->latitude, msg->longitude);
         sector_number = (sector_number + 1) % sectors.size();
         mean_speed = 0.0;
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_gps = nh.subscribe("/swiftnav/front/gps_pose", 10, gpsCallback);
     sec_times_pub = nh.advertise<first_project::sector_times>("/sector_times", 50);
 
-    ROS_INFO("Odometer node started and subscribed to /speedsteer and /swiftnav/front/gps_pose");
+    ROS_INFO("sector_times: Odometer node started and subscribed to /speedsteer and /swiftnav/front/gps_pose");
 
     ros::spin();
     return 0;

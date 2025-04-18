@@ -1,0 +1,4 @@
+<launch>
+  <!-- Launch odometer node -->
+  <node pkg="first_project" type="odometer" name="odometer" output="screen" /> 
+</launch>

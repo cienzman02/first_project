@@ -2,6 +2,7 @@
   <!-- Launch odometer node -->
   <node pkg="first_project" type="odometer" name="odometer" output="screen" />  
   
+  
   <!-- Launch gps_odometer node -->
   <node pkg="first_project" type="gps_odometer" name="gps_odometer" output="screen">
     <param  name="lat_r" type="double" value="45.618932" />

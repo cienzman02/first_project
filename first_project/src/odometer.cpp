@@ -18,7 +18,7 @@ ros::Time last_time;
 
 void callback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
-  ROS_INFO("Callback triggered! Speed = %.2f km/h, Steer = %.2f deg", msg->point.y, msg->point.x);
+  // ROS_INFO("odometer: Callback triggered! Speed = %.2f km/h, Steer = %.2f deg", msg->point.y, msg->point.x);
 
   ros::Time current_time = msg->header.stamp;
   if (last_time.isZero()) {
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub = nh.subscribe("/speedsteer", 1000, callback);
 
-  ROS_INFO("Odometer node started and subscribed to /speedsteer");
+  ROS_INFO("odomter: Odometer node started and subscribed to /speedsteer");
 
   ros::spin();
 

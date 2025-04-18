@@ -1,7 +1,8 @@
 <launch>
   <!-- Launch gps_odometer node -->
-  <node pkg="first_project" type="gps_odometer" name="gps_odometer" output="screen" />
-
-  <!-- Optional: Start RViz -->
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find first_project)/rviz/gps_odom.rviz" required="false" />
+  <node pkg="first_project" type="gps_odometer" name="gps_odometer" output="screen">
+    <param  name="lat_r" type="double" value="45.618932" />
+    <param  name="lon_r" type="double" value="9.281179" />
+    <param  name="alt_r" type="double" value="229.049061" />
+  </node>
 </launch>

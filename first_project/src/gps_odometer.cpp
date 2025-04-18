@@ -58,7 +58,7 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
         alt_ref = msg->altitude;
         gpsToECEF(lat_ref, lon_ref, alt_ref, Xr, Yr, Zr);
         reference_set = true;
-        ROS_INFO("Reference GPS set: lat=%.8f, lon=%.8f, alt=%.2f", lat_ref, lon_ref, alt_ref);
+        ROS_INFO("gps_odometer: Reference GPS set: lat=%.8f, lon=%.8f, alt=%.2f", lat_ref, lon_ref, alt_ref);
         return;
     }
 
@@ -116,13 +116,13 @@ int main(int argc, char** argv) {
     ros::NodeHandle private_nh("~");
     double p_lat_r, p_lon_r, p_alt_r;
     if (private_nh.getParam("lat_r", p_lat_r) && private_nh.getParam("lon_r", p_lon_r) && private_nh.getParam("alt_r", p_alt_r)) {
-        ROS_INFO("Set GPS references from params: lat_r=%f lon_r=%f alt_r=%f", p_lat_r, p_lon_r, p_alt_r);
+        ROS_INFO("gps_odometer: Set GPS references from params: lat_r=%f lon_r=%f alt_r=%f", p_lat_r, p_lon_r, p_alt_r);
         lat_ref = p_lat_r;
         lon_ref = p_lon_r;
         alt_ref = p_alt_r;
         reference_set = true;
     } else {
-        ROS_INFO("GPS reference not found in params, going to use first message");
+        ROS_INFO("gps_odometer: GPS reference not found in params, going to use first message");
     }
 
     gps_odom_pub = nh.advertise<nav_msgs::Odometry>("/gps_odom", 50);
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
 
     ros::Subscriber gps_sub = nh.subscribe("/swiftnav/front/gps_pose", 1000, gpsCallback);
 
-    ROS_INFO("GPS Odometer node started.");
+    ROS_INFO("gps_odometer: GPS Odometer node started.");
 
     ros::spin();
 
