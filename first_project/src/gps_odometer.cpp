@@ -120,6 +120,7 @@ int main(int argc, char** argv) {
         lat_ref = p_lat_r;
         lon_ref = p_lon_r;
         alt_ref = p_alt_r;
+        gpsToECEF(lat_ref, lon_ref, alt_ref, Xr, Yr, Zr);
         reference_set = true;
     } else {
         ROS_INFO("gps_odometer: GPS reference not found in params, going to use first message");
