@@ -127,7 +127,7 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "sector_times");
     ros::NodeHandle nh;
-
+    
     ros::Subscriber sub_speed = nh.subscribe("/speedsteer", 10, speedCallback);
     ros::Subscriber sub_gps = nh.subscribe("/swiftnav/front/gps_pose", 10, gpsCallback);
     sec_times_pub = nh.advertise<first_project::sector_times>("/sector_times", 50);

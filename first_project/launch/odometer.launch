@@ -1,4 +1,8 @@
 <launch>
   <!-- Launch odometer node -->
-  <node pkg="first_project" type="odometer" name="odometer" output="screen" /> 
+    <node pkg="first_project" type="odometer" name="odometer" output="screen" >
+    <param  name="steer" type="double" value="32.0" />
+    <param  name="steering_bias" type="double" value="-3" />
+    <param  name="initial_theta" type="double" value="1.4885913" />
+  </node> 
 </launch>

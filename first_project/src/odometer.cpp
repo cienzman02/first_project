@@ -5,6 +5,7 @@
 
 double rear_wheel_base = 1.3;     // meters (130 cm)
 double front_to_rear = 1.765;     // meters (176.5 cm)
+double steering_bias = 0.0;       // to be subtracted from steer_deg
 double steering_factor = 32.0;    // steering column to wheel angle factor
 
 ros::Publisher odom_pub;   
@@ -30,7 +31,7 @@ void callback(const geometry_msgs::PointStamped::ConstPtr& msg)
   last_time = current_time;
 
   double speed_kmh = msg->point.y;
-  double steer_deg = msg->point.x;
+  double steer_deg = msg->point.x - steering_bias;
 
   // Convert speed to m/s
   double speed = speed_kmh / 3.6;
@@ -40,17 +41,20 @@ void callback(const geometry_msgs::PointStamped::ConstPtr& msg)
 
   // Ackermann bicycle model
   double angular_velocity = speed * tan(steering_rad) / front_to_rear;
-  double delta_theta = angular_velocity * dt;
 
-  double delta_x = speed * cos(theta + delta_theta / 2) * dt;
-  double delta_y = speed * sin(theta + delta_theta / 2) * dt;
+  double delta_x = 0.0, delta_y = 0.0, delta_theta = angular_velocity * dt;
+  if (abs(angular_velocity) <= 1e-6) {
+    delta_x = speed * dt * cos(theta + (angular_velocity * dt) / 2);
+    delta_y = speed * dt * sin(theta + (angular_velocity * dt) / 2);
+  } else {
+    double new_theta = theta + delta_theta;
+    delta_x = (speed / angular_velocity) * (sin(new_theta) - sin(theta));
+    delta_y = -(speed / angular_velocity) * (cos(new_theta) - cos(theta));
+  }
 
   x += delta_x;
   y += delta_y;
   theta += delta_theta;
-
-  // Normalize theta to [-pi, pi]
-  theta = atan2(sin(theta), cos(theta));
 
   // Publish Odometry
   nav_msgs::Odometry odom;
@@ -83,7 +87,26 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "odometer");
   ros::NodeHandle nh;
+  
+  ros::NodeHandle private_nh("~");
+  double steer_p;
+  if (private_nh.getParam("steer", steer_p)) {
+    steering_factor = steer_p;
+    ROS_INFO("odom: set steering factor %f", steering_factor);
+  }
+  
+  double steer_bias_p;
+  if (private_nh.getParam("steering_bias", steer_bias_p)) {
+    steering_bias = steer_bias_p;
+    ROS_INFO("odom: set steering bias %f", steering_bias);
+  }
 
+  double initial_theta_p;
+  if (private_nh.getParam("initial_theta", initial_theta_p)) {
+    theta = initial_theta_p;
+    ROS_INFO("odom: set initial theta %f", theta);
+  }
+  
   // Wait for /clock if using rosbag --clock
   ros::Time::waitForValid();
 
