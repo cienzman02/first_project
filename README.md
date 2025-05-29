@@ -102,7 +102,3 @@ Example:
 
 This project is part of a university coursework. Adapt it freely for educational or research use.
 
-## 🤝 Contributors
-
-- Your Name – your.email@domain.com
-```
